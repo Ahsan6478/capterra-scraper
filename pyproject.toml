@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "capterra-scraper"
+version = "0.1.0"
+description = "Scraper for collecting software product data from Capterra"
+requires-python = ">=3.9"
+dependencies = [
+    "requests>=2.28",
+    "beautifulsoup4>=4.11",
+    "lxml>=4.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["capterra_scraper*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
