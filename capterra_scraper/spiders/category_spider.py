@@ -122,3 +122,22 @@ def fetch_product_urls_for_category(
     )
 
 
+def _fetch_with_retries(client, endpoint, cookie, max_retries=MAX_RETRIES):
+    """Try fetching an endpoint, refreshing cookies on 403 errors."""
+    retry_count = 0
+    while True:
+        try:
+            resp = client.get(endpoint, cookie=cookie)
+            retry_count += 1
+            logger.debug("GET %s -> %d", endpoint, resp.status_code)
+
+            if resp.status_code in (200, 404):
+                return resp
+            if resp.status_code == 403 and retry_count >= max_retries:
+                cookie = refresh_cookie()
+                retry_count = 0
+        except Exception:
+            logger.exception("Request error for %s", endpoint)
+            retry_count += 1
+            if retry_count > max_retries:
+                return None
