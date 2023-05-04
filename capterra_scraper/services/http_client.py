@@ -74,7 +74,7 @@ class CapterraHttpClient:
         else:
             conn = http.client.HTTPSConnection(self.HOST)
 
-        conn.request("GET", endpoint, body="", headers=headers)
+        conn.request("GET", endpoint, body=None, headers=headers)
         resp = conn.getresponse()
         raw = resp.read()
 
