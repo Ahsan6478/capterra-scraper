@@ -56,7 +56,7 @@ def _parse_ssr_bridge_data(html: str) -> Optional[Product]:
     soup = BeautifulSoup(html, "html.parser")
 
     for script in soup.find_all("script"):
-        script_text = script.string or ""
+        script_text = str(script.string) if script.string else ""
         if (
             "SSR_BRIDGE_DATA" in script_text
             and "rank" in script_text
