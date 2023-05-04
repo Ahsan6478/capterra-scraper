@@ -51,3 +51,24 @@ def extract_product(
     return _parse_ssr_bridge_data(resp.text)
 
 
+def _parse_ssr_bridge_data(html: str) -> Optional[Product]:
+    """Extract and parse the ``SSR_BRIDGE_DATA`` JSON embedded in the page."""
+    soup = BeautifulSoup(html, "html.parser")
+
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        if (
+            "SSR_BRIDGE_DATA" in script_text
+            and "rank" in script_text
+            and "alternativeProducts" in script_text
+        ):
+            cleaned = script_text.replace("window['SSR_BRIDGE_DATA'] =", "").strip()
+            try:
+                raw_data = json.loads(cleaned)
+                return Product.from_ssr_data(raw_data)
+            except (json.JSONDecodeError, KeyError, TypeError):
+                logger.exception("Failed to parse SSR_BRIDGE_DATA")
+                return None
+
+    logger.warning("No SSR_BRIDGE_DATA script tag found")
+    return None
