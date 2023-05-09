@@ -24,3 +24,4 @@ include = ["capterra_scraper*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-v --tb=short"
