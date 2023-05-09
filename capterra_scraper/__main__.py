@@ -58,3 +58,51 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def main() -> None:
+    _setup_logging()
+    args = _parse_args()
+
+    proxy_config = ProxyConfig.from_env()
+    client = CapterraHttpClient(proxy_config=proxy_config if proxy_config.host else None)
+
+    cookie = os.environ.get("CAPTERRA_COOKIE", "")
+
+    # Phase 1: Category discovery
+    if args.categories_file and os.path.exists(args.categories_file):
+        logging.info("Loading categories from %s", args.categories_file)
+        with open(args.categories_file, "r") as fh:
+            categories = json.load(fh)
+    else:
+        categories = run_category_discovery(
+            client,
+            cookie=cookie or None,
+            num_threads=args.threads,
+            max_workers=args.max_workers,
+        )
+        os.makedirs(args.output, exist_ok=True)
+        cat_path = os.path.join(args.output, "categories.json")
+        with open(cat_path, "w") as fh:
+            json.dump(categories, fh, indent=2)
+        logging.info("Saved %d categories to %s", len(categories), cat_path)
+
+    # Phase 2: Product extraction
+    all_product_urls: list[str] = []
+    for cat in categories:
+        all_product_urls.extend(cat.get("product_urls", []))
+
+    unique_urls = list(set(all_product_urls))
+    logging.info("Total unique product URLs: %d", len(unique_urls))
+
+    if unique_urls:
+        run_product_extraction(
+            client,
+            unique_urls,
+            cookie=cookie or None,
+            num_threads=args.threads,
+            max_workers=args.max_workers,
+            output_dir=args.output,
+        )
+
+
+if __name__ == "__main__":
+    main()
