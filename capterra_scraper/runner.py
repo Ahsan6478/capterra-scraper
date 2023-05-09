@@ -40,3 +40,52 @@ def _divide_list(items: list, n: int) -> List[list]:
     return result
 
 
+def run_category_discovery(
+    client: CapterraHttpClient,
+    cookie: Optional[str] = None,
+    num_threads: int = DEFAULT_THREADS,
+    max_workers: int = MAX_THREAD_CAP,
+) -> List[dict]:
+    """Discover all categories and collect their product URLs.
+
+    Returns a list of category dicts ready for JSON serialization.
+    """
+    category_paths = fetch_category_urls(client, cookie=cookie)
+    if not category_paths:
+        logger.error("No categories found, aborting discovery")
+        return []
+
+    logger.info("Starting product URL discovery for %d categories", len(category_paths))
+    batches = _divide_list(category_paths, num_threads)
+    results: List[dict] = []
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(_scrape_category_batch, client, batch, cookie): idx
+            for idx, batch in enumerate(batches)
+        }
+        for future in as_completed(futures):
+            batch_results = future.result()
+            results.extend(batch_results)
+
+    logger.info("Discovered %d categories with product URLs", len(results))
+    return results
+
+
+def _scrape_category_batch(
+    client: CapterraHttpClient,
+    category_paths: List[str],
+    cookie: Optional[str],
+) -> List[dict]:
+    """Scrape product URLs for a batch of category paths."""
+    batch_results: List[dict] = []
+    for path in category_paths:
+        try:
+            info = fetch_product_urls_for_category(client, path, cookie=cookie)
+            if info is not None:
+                batch_results.append(info.to_dict())
+        except Exception:
+            logger.exception("Failed to scrape category: %s", path)
+    return batch_results
+
+
