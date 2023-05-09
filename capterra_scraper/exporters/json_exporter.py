@@ -30,7 +30,7 @@ def export_products_json(products: Sequence[Product], output_path: str) -> None:
 
     data = [p.to_dict() for p in products]
     with open(output_path, "w", encoding="utf-8") as fh:
-        json.dump(data, fh, indent=2, ensure_ascii=False)
+        json.dump(data, fh, indent=2, ensure_ascii=False, default=str)
 
     logger.info("Exported %d products to %s", len(products), output_path)
 
@@ -72,7 +72,7 @@ def merge_json_files(directory: str, output_path: str) -> int:
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as fh:
-        json.dump(unique, fh, indent=2, ensure_ascii=False)
+        json.dump(unique, fh, indent=2, ensure_ascii=False, default=str)
 
     logger.info("Merged %d unique records from %s", len(unique), directory)
     return len(unique)
