@@ -89,3 +89,51 @@ def _scrape_category_batch(
     return batch_results
 
 
+def run_product_extraction(
+    client: CapterraHttpClient,
+    product_urls: List[str],
+    cookie: Optional[str] = None,
+    num_threads: int = DEFAULT_THREADS,
+    max_workers: int = MAX_THREAD_CAP,
+    output_dir: str = "output",
+) -> List[Product]:
+    """Extract product details for a list of product URLs.
+
+    Results are exported to both CSV and JSON in *output_dir*.
+    """
+    logger.info("Starting extraction for %d product URLs", len(product_urls))
+    batches = _divide_list(product_urls, num_threads)
+    all_products: List[Product] = []
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(_extract_batch, client, batch, cookie): idx
+            for idx, batch in enumerate(batches)
+        }
+        for future in as_completed(futures):
+            batch_products = future.result()
+            all_products.extend(batch_products)
+
+    os.makedirs(output_dir, exist_ok=True)
+    export_products_csv(all_products, os.path.join(output_dir, "capterra_products.csv"))
+    export_products_json(all_products, os.path.join(output_dir, "capterra_products.json"))
+
+    logger.info("Extraction complete: %d products", len(all_products))
+    return all_products
+
+
+def _extract_batch(
+    client: CapterraHttpClient,
+    urls: List[str],
+    cookie: Optional[str],
+) -> List[Product]:
+    """Extract products for a batch of URLs."""
+    products: List[Product] = []
+    for url in urls:
+        try:
+            product = extract_product(client, url, cookie=cookie)
+            if product is not None:
+                products.append(product)
+        except Exception:
+            logger.exception("Failed to extract product: %s", url)
+    return products
