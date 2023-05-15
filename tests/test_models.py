@@ -75,3 +75,46 @@ class TestProduct:
         assert "category_url" in d
         assert "training" in d
 
+    def test_url_prefix_handling(self):
+        raw = {
+            "category": {"htmlName": "no-leading-slash", "id": 1, "longName": "Cat"},
+            "vendor": {"url": "", "name": "", "yearFounded": None, "location": ""},
+            "productUrl": "p/test",
+            "productId": 1,
+            "name": "T",
+            "overallRating": None,
+            "reviewsTotal": 0,
+            "shortDescription": "",
+            "longDescription": "",
+            "valueForMoneyRating": None,
+            "customerServiceRating": None,
+            "easeOfUseRating": None,
+            "recommendationRating": None,
+            "functionalityRating": None,
+            "pricingDetails": "",
+            "pricing": "",
+            "hasFreeTrial": False,
+            "training": [],
+            "support": [],
+            "bestFor": "",
+        }
+        product = Product.from_ssr_data(raw)
+        assert product.category_url.startswith("https://www.capterra.com/")
+        assert product.capterra_url.startswith("https://www.capterra.com/")
+
+
+class TestCategoryInfo:
+    def test_scraped_count(self):
+        info = CategoryInfo(
+            name="Test",
+            url="/test",
+            capterra_count=100,
+            product_urls=["/p/1", "/p/2", "/p/3"],
+        )
+        assert info.scraped_count == 3
+
+    def test_to_dict(self):
+        info = CategoryInfo(name="Cat", url="/cat", capterra_count=5, product_urls=[])
+        d = info.to_dict()
+        assert d["name"] == "Cat"
+        assert d["product_urls"] == []
