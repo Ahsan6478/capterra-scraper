@@ -40,3 +40,38 @@ class TestProduct:
         assert product.training == ["Webinars", "Docs"]
         assert product.support == ["Email", "Phone"]
 
+    def test_from_ssr_data_missing_optional_fields(self):
+        raw = {
+            "category": {"htmlName": "software", "id": 1, "longName": "Software"},
+            "vendor": {"url": "", "name": "", "yearFounded": None, "location": ""},
+            "productUrl": "p/minimal",
+            "productId": 1,
+            "name": "Minimal",
+            "overallRating": None,
+            "reviewsTotal": 0,
+            "shortDescription": "",
+            "longDescription": "",
+            "valueForMoneyRating": None,
+            "customerServiceRating": None,
+            "easeOfUseRating": None,
+            "recommendationRating": None,
+            "functionalityRating": None,
+            "pricingDetails": "",
+            "pricing": "",
+            "hasFreeTrial": False,
+            "training": [],
+            "support": [],
+            "bestFor": "",
+        }
+
+        product = Product.from_ssr_data(raw)
+        assert product.name == "Minimal"
+        assert product.rating is None
+
+    def test_to_dict_returns_all_fields(self):
+        product = Product(name="Test", product_id=1)
+        d = product.to_dict()
+        assert d["name"] == "Test"
+        assert "category_url" in d
+        assert "training" in d
+
