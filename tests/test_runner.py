@@ -30,3 +30,8 @@ class TestDivideList:
     def test_zero_groups(self):
         result = _divide_list([1, 2, 3], 0)
         assert result == [[1, 2, 3]]
+
+    def test_single_item(self):
+        result = _divide_list([42], 3)
+        flat = [x for chunk in result for x in chunk]
+        assert flat == [42]
