@@ -118,3 +118,8 @@ class TestCategoryInfo:
         d = info.to_dict()
         assert d["name"] == "Cat"
         assert d["product_urls"] == []
+
+    def test_empty_training_and_support(self):
+        info = CategoryInfo(name="X", url="/x")
+        assert info.product_urls == []
+        assert info.scraped_count == 0
