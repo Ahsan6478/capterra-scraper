@@ -73,3 +73,9 @@ capterra_scraper/
     ├── csv_exporter.py
     └── json_exporter.py
 ```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Run `pytest` before submitting a PR
