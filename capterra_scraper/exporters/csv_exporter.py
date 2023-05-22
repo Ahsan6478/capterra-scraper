@@ -37,3 +37,22 @@ def export_products_csv(products: Sequence[Product], output_path: str) -> None:
         writer.writerows(rows)
 
     logger.info("Exported %d products to %s", len(products), output_path)
+
+
+def export_products_csv_chunked(
+    products: Sequence[Product],
+    output_dir: str,
+    chunk_size: int = 500,
+) -> None:
+    """Export products to multiple CSV files split by chunk size."""
+    if not products:
+        return
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    for i in range(0, len(products), chunk_size):
+        chunk = products[i : i + chunk_size]
+        part = (i // chunk_size) + 1
+        path = os.path.join(output_dir, f"capterra_products_part{part}.csv")
+        export_products_csv(chunk, path)
+        logger.info("Exported chunk %d (%d products)", part, len(chunk))
