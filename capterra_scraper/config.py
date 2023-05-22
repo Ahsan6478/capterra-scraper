@@ -33,6 +33,7 @@ class CookieServiceConfig:
     auth_token: str = ""
     site: str = "capterra"
     proxy_region: str = "eu"
+    proxy_url: str = ""
     region: str = "com"
 
     @classmethod
