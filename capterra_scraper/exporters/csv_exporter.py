@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 import logging
 import os
-from typing import Dict, List, Sequence
+from typing import Dict, List, Optional, Sequence
 
 from capterra_scraper.models.product import Product
 
